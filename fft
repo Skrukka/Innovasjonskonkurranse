@@ -5,41 +5,30 @@
 
 arduinoFFT FFT = arduinoFFT();        // Create FFT object
 
-// Arrays for the FFT – arduinoFFT works with double arrays.
-double vReal[SAMPLES];
-double vImag[SAMPLES];
-
-void setup() {
-  Serial.begin(115200);
-
-  // Suppose 'signalValues' is your array of 128 float values.
-  float signalValues[SAMPLES] = {
-    /* Your 128 float values here */
-  };
-
-  // Copy float data into the double array (or you could modify your code to use floats)
-  for (int i = 0; i < SAMPLES; i++) {
-    vReal[i] = (double)signalValues[i];
-    vImag[i] = 0;  // No imaginary component for real-valued signals
+void printLargestFrequency(float signalValues[][][]) {
+    
+    double vReal[signalArray[0].length()][SAMPLES]; // Arrays for the FFT – arduinoFFT works with double arrays.
+    double vImag[signalArray[0].length()][SAMPLES];
+   for (int i = 0; i < 8; i++) {
+    for (int j = 0; j < 16; j++) {
+      for (int k = 0; k < signalArray.length(); k++) {
+          vReal[k][j] = signalArray[k][i][j];
+      }
+    }    
   }
-
-  // Apply a window function (optional but recommended)
-  FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
-  
-  // Compute the FFT
-  FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
-  
-  // Compute magnitudes
-  FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
-  
-  // Find the peak frequency (the function MajorPeak returns the frequency of the highest magnitude)
-  double peakFrequency = FFT.MajorPeak(vReal, SAMPLES, SAMPLING_FREQUENCY);
-  
-  Serial.print("Peak frequency: ");
-  Serial.print(peakFrequency, 2);
-  Serial.println(" Hz");
+  for (int i = 0; i < signalArray.length(); i++) {
+    for (int j = 0; j < signalArray[0].length(); j++) {
+      FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+      FFT.Compute(vReal[i], vImag, SAMPLES, FFT_FORWARD);
+      FFT.ComplexToMagnitude(vReal[i], vImag, SAMPLES);
+      double peakFrequency = FFT.MajorPeak(vReal[i], SAMPLES, SAMPLING_FREQUENCY);
+      Serial.print("Peak frequency: ");
+      Serial.print(peakFrequency, 2);
+      Serial.println(" Hz");
+    }
+  }
 }
 
-void loop() {
-  // Nothing to do here.
-}
+
+
+
