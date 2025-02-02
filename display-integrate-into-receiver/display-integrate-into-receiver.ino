@@ -14,18 +14,17 @@
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST);
 
 typedef struct struct_message {
-    float distances0[16];
-    float distances1[16];
-    float distances2[16];
+    float data[3][16];
 } struct_message;
+
+
 
 struct_message myData;
 
+#define NUM_GRAPHS 3
 #define NUM_ROWS 8
 #define NUM_COLS 16
-float distanceData0[NUM_ROWS][NUM_COLS];
-float distanceData1[NUM_ROWS][NUM_COLS];
-float distanceData2[NUM_ROWS][NUM_COLS];
+float graphs[NUM_GRAPHS][NUM_ROWS][NUM_COLS];
 
 
 
@@ -33,9 +32,7 @@ float distanceData2[NUM_ROWS][NUM_COLS];
 #define TEST_COLS 16
 #define TEST_INTERVAL 5000  // 1 second
 
-float sineWave0[TEST_ROWS][TEST_COLS]; // 2D array with 128x16 32-bit floats
-float sineWave1[TEST_ROWS][TEST_COLS]; // 2D array with 128x16 32-bit floats
-float sineWave2[TEST_ROWS][TEST_COLS]; // 2D array with 128x16 32-bit floats
+float sineWaves[NUM_GRAPHS][TEST_ROWS][TEST_COLS];
 unsigned long lastCallTime = 0;
 int currentRow = 0;
 
@@ -53,21 +50,18 @@ int baseY2 = 120;
 
 void shiftAndStoreData(/*float newDistances[NUM_COLS]*/) {
     for (int i = 0; i < NUM_ROWS - 1; i++) {
-        memcpy(distanceData0[i], distanceData0[i + 1], NUM_COLS * sizeof(float));
-        memcpy(distanceData1[i], distanceData1[i + 1], NUM_COLS * sizeof(float));
-        memcpy(distanceData2[i], distanceData2[i + 1], NUM_COLS * sizeof(float));
+        memcpy(graphs[0][i], graphs[0][i + 1], NUM_COLS * sizeof(float));
+        memcpy(graphs[1][i], graphs[1][i + 1], NUM_COLS * sizeof(float));
+        memcpy(graphs[2][i], graphs[2][i + 1], NUM_COLS * sizeof(float));
     }
-    memcpy(distanceData0[NUM_ROWS - 1], myData.distances0, NUM_COLS * sizeof(float));
-    memcpy(distanceData1[NUM_ROWS - 1], myData.distances1, NUM_COLS * sizeof(float));
-    memcpy(distanceData2[NUM_ROWS - 1], myData.distances2, NUM_COLS * sizeof(float));
+    memcpy(graphs[0][NUM_ROWS - 1], myData.data[0], NUM_COLS * sizeof(float));
+    memcpy(graphs[1][NUM_ROWS - 1], myData.data[1], NUM_COLS * sizeof(float));
+    memcpy(graphs[2][NUM_ROWS - 1], myData.data[2], NUM_COLS * sizeof(float));
+
+    // REVERSE ALL INCOMING ARRAYS HERE
+
 }
 
-// void shiftAndStoreData(float newDistances[NUM_COLS]) {
-//     for (int i = 0; i < NUM_ROWS - 1; i++) {
-//         memcpy(distanceData[i], distanceData[i + 1], NUM_COLS * sizeof(float));
-//     }
-//     memcpy(distanceData[NUM_ROWS - 1], newDistances, NUM_COLS * sizeof(float));
-// }
 
 
 
@@ -86,9 +80,9 @@ void drawGraph() {
     // tft.setCursor(100, 5);
     // tft.print("Graph");
     
-    drawGraphSegment(distanceData0, baseY0, ST77XX_RED);
-    drawGraphSegment(distanceData1, baseY1, ST77XX_GREEN);
-    drawGraphSegment(distanceData2, baseY2, ST77XX_BLUE);
+    drawGraphSegment(graphs[0], baseY0, ST77XX_RED);
+    drawGraphSegment(graphs[1], baseY1, ST77XX_GREEN);
+    drawGraphSegment(graphs[2], baseY2, ST77XX_BLUE);
 }
 
 
@@ -127,9 +121,9 @@ void generateSineWave() {
             float noise0 = random(-500, 500) / 1000.0;  // Small noise in range [-0.5, 0.5]
             float noise1 = random(-500, 500) / 1000.0;  // Small noise in range [-0.5, 0.5]
             float noise2 = random(-500, 500) / 1000.0;  // Small noise in range [-0.5, 0.5]
-            sineWave0[i][j] = sin(x + (i * 2 * PI / TEST_ROWS)) + noise0;
-            sineWave1[i][j] = sin(x + (i * 2 * PI / TEST_ROWS)) + noise1;
-            sineWave2[i][j] = sin(x + (i * 2 * PI / TEST_ROWS)) + noise2;
+            sineWaves[0][i][j] = sin(x + (i * 2 * PI / TEST_ROWS)) + noise0;
+            sineWaves[1][i][j] = sin(x + (i * 2 * PI / TEST_ROWS)) + noise1;
+            sineWaves[2][i][j] = sin(x + (i * 2 * PI / TEST_ROWS)) + noise2;
         }
     }
 }
@@ -170,9 +164,9 @@ void loop() {
     if (currentTime - lastCallTime >= TEST_INTERVAL) {
         lastCallTime = currentTime;
         
-        memcpy(&distanceData0, sineWave0[currentRow], sizeof(distanceData0));
-        memcpy(&distanceData1, sineWave1[currentRow], sizeof(distanceData1));
-        memcpy(&distanceData2, sineWave2[currentRow], sizeof(distanceData2));
+        memcpy(&graphs[0], sineWaves[0][currentRow], sizeof(graphs[0]));
+        memcpy(&graphs[1], sineWaves[1][currentRow], sizeof(graphs[1]));
+        memcpy(&graphs[2], sineWaves[2][currentRow], sizeof(graphs[2]));
         drawGraph();
 
         // Move to the next row, looping back after 128
