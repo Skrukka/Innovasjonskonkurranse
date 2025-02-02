@@ -1,0 +1,64 @@
+#define TRIG_PIN 2
+#define ECHO_PIN 19
+
+#define MAX_DISTANCE 20  // cm (adjustable)
+#define SPEED_OF_SOUND 0.0343  // cm/µs (343 m/s)
+#define SAMPLING_RATE 8  // Hz (measurements per second)
+
+// Calculate timeout for max distance (add small buffer)
+#define MAX_TIMEOUT 1200 // in µs
+
+// Calculate sampling interval dynamically
+#define MEASUREMENT_INTERVAL (1000 / SAMPLING_RATE) // in ms
+
+unsigned long lastMeasurementTime = 0;
+float distance = 0;
+
+void setup() {
+    Serial.begin(115200);
+    pinMode(TRIG_PIN, OUTPUT);
+    pinMode(ECHO_PIN, INPUT);
+
+    Serial.print("Max Timeout: ");
+    Serial.print(MAX_TIMEOUT);
+    Serial.println(" µs");
+
+    Serial.print("Measurement Interval: ");
+    Serial.print(MEASUREMENT_INTERVAL);
+    Serial.println(" ms");
+}
+
+void loop() {
+    unsigned long currentMillis = millis();
+
+    if (currentMillis - lastMeasurementTime >= MEASUREMENT_INTERVAL) {
+        lastMeasurementTime = currentMillis;
+        distance = getDistance();
+        
+        if (distance > 0) {
+            Serial.print("Distance: ");
+            Serial.print(distance);
+            Serial.println(" cm");
+        } else {
+            Serial.println("Out of range or no object detected");
+        }
+    }
+}
+
+float getDistance() {
+    // Trigger pulse
+    digitalWrite(TRIG_PIN, LOW);
+    delayMicroseconds(2);
+    digitalWrite(TRIG_PIN, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(TRIG_PIN, LOW);
+
+    // Use pulseInLong for better performance on ESP32
+    long duration = pulseInLong(ECHO_PIN, HIGH, MAX_TIMEOUT);
+
+    // If duration is 0, return -1 (no valid echo received)
+    if (duration == 0) return -1;
+
+    // Convert duration to distance (cm)
+    return (duration * SPEED_OF_SOUND) / 2;
+}
