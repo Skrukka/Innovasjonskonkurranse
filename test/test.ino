@@ -146,9 +146,9 @@ void setup() {
 }
  
 void loop() {
-  // /* Get new sensor events with the readings */
-  // sensors_event_t a, g, temp;
-  // mpu.getEvent(&a, &g, &temp);
+  /* Get new sensor events with the readings */
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
 
   // /* Print out the values */
   // Serial.print("Acceleration X: ");
@@ -163,7 +163,6 @@ void loop() {
 
 
   // //Set values to send
-  // myData.data[0][count]=pow(pow(a.acceleration.x,2)+pow(a.acceleration.y,2)+pow(a.acceleration.z,2),0.5);
   // count+=1;
 
   // if (count>=15) {
@@ -183,14 +182,16 @@ void loop() {
 
 
 
-  unsigned long currentTime = millis();
-  
-  if (currentTime - lastCallTime >= TEST_INTERVAL) {
-      lastCallTime = currentTime;
-      memcpy(&myData.data[0], sineWaves[0][currentRow], sizeof(myData.data[0]));
-      memcpy(&myData.data[1], sineWaves[1][currentRow], sizeof(myData.data[1]));
-      memcpy(&myData.data[2], sineWaves[2][currentRow], sizeof(myData.data[2]));
-      currentRow = (currentRow + 1) % TEST_ROWS;
+  // unsigned long currentTime = millis();
+
+  myData.data[0][currentRow]=sqrt(pow(a.acceleration.x,2)+pow(a.acceleration.y,2)+pow(a.acceleration.z,2));
+
+  memcpy(&myData.data[1], sineWaves[1][currentRow], sizeof(myData.data[1]));
+  memcpy(&myData.data[2], sineWaves[2][currentRow], sizeof(myData.data[2]));
+  currentRow+=1;
+  if (currentRow>=15) {
+      currentRow=0;
+
 
 
       // Send message via ESP-NOW
@@ -202,5 +203,6 @@ void loop() {
       else {
         Serial.println("Error sending the data");
       }
+      delay(200);
   }
 }
