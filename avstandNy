@@ -17,8 +17,15 @@
 
 unsigned long lastMeasurementTime = 0;
 float distance = 0;
+unsigned long currentMillis;
+int count{0};
 
 Adafruit_MPU6050 mpu;
+
+struct Datatransfer {
+    double dist[16];
+    double acc[16];
+}
 
 void setup() {
     Serial.begin(115200);
@@ -95,7 +102,7 @@ void setup() {
 }
 
 void loop() {
-    unsigned long currentMillis = millis();
+    currentMillis = millis();
 
     if (currentMillis - lastMeasurementTime >= MEASUREMENT_INTERVAL) {
         lastMeasurementTime = currentMillis;
@@ -109,18 +116,26 @@ void loop() {
             Serial.println("Out of range or no object detected");
         }
     }
-     /* Get new sensor events with the readings */
-      sensors_event_t a, g, temp;
-      mpu.getEvent(&a, &g, &temp);
+    /* Get new sensor events with the readings */
+    sensors_event_t a, g, temp;
+    mpu.getEvent(&a, &g, &temp);
     
-      /* Print out the values */
-      Serial.print("Acceleration X: ");
-      Serial.print(a.acceleration.x);
-      Serial.print(", Y: ");
-      Serial.print(a.acceleration.y);
-      Serial.print(", Z: ");
-      Serial.print(a.acceleration.z);
-      Serial.println(" m/s^2");
+    /* Print out the values */
+    Serial.print("Acceleration X: ");
+    Serial.print(a.acceleration.x);
+    Serial.print(", Y: ");
+    Serial.print(a.acceleration.y);
+    Serial.print(", Z: ");
+    Serial.print(a.acceleration.z);
+    Serial.println(" m/s^2");
+
+    if (count==16){
+        count=0
+    //send
+    }
+    
+    count+=1
+    delay(60);
 }
 
 float getDistance() {
