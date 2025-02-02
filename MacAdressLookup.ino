@@ -31,5 +31,6 @@ void setup(){
  
 void loop(){}
 
-//esp32 S2 (elvar):     60:55:f9:ed:d4:8a
-//esp32 WROOM (åsmund): 88:13:bf:68:8a:50
+//esp32 S2 (elvar):      60:55:f9:ed:d4:8a
+//esp32 WROOM (åsmund):  88:13:bf:68:8a:50
+//esp32 WROOM (Joachim): 88:13:bf:69:b7:58
